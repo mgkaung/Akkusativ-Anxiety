@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netzwerk A1.1 Lern-Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chapter-nav-item.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+        }
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .flashcard-front {
+            background-color: #f3f4f6;
+        }
+        .flashcard-back {
+            background-color: #e5e7eb;
+            transform: rotateY(180deg);
+        }
+        .quiz-option:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-option:disabled {
+             cursor: not-allowed;
+        }
+        .conjugation-input {
+            width: 120px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            margin: 0 0.5rem;
+        }
+        .verb-table th, .verb-table td {
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        .verb-table thead {
+            background-color: #f3f4f6;
+        }
+        .verb-table tbody tr:nth-child(odd) {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-indigo-600">Netzwerk neu A1.1 Study Tool</h1>
+            <p class="text-gray-600 mt-1">Your interactive guide to learning German</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+
+        <!-- Navigation -->
+        <nav class="lg:w-1/4">
+            <div class="bg-white p-4 rounded-lg shadow-md sticky top-8">
+                <h2 class="text-xl font-semibold mb-4">Content</h2>
+                <ul id="chapter-nav" class="space-y-2">
+                    <!-- Navigation items will be inserted here by JavaScript -->
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main id="content-area" class="lg:w-3/4 min-w-0">
+            <!-- Chapter content will be inserted here by JavaScript -->
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center text-gray-500">
+            <p>Viel Erfolg beim Lernen! (Good luck with your studies!)</p>
+        </div>
+    </footer>
+
+    <script>
+        const studyData = {
+            kapitel1: {
+                title: "Guten Tag!",
+                description: "Greetings, introductions, talking about countries and languages.",
+                vocab: [ { de: "Guten Tag!", en: "Hello! / Good day!" }, { de: "Hallo!", en: "Hello!" }, { de: "Wie geht's?", en: "How are you?" }, { de: "heißen", en: "to be called" }, { de: "sprechen", en: "to speak" }, { de: "wohnen", en: "to live/reside" }, { de: "kommen", en: "to come" }, { de: "sein", en: "to be" }, { de: "die Sprache, -n", en: "the language, -s" }, { de: "das Land, ¨-er", en: "the country, -ies" }, { de: "Auf Wiedersehen", en: "Goodbye (formal)" }, { de: "Tschüs!", en: "Bye! (informal)" } ],
+                grammar: [
+                    { type: "rule", title: "W-Fragen (Information Questions)", content: "Questions with <strong>Wer?</strong> (who?), <strong>Wie?</strong> (how?), <strong>Wo?</strong> (where?), and <strong>Woher?</strong> (where from?) start the sentence. The verb is always in position 2. <br><i>Example: Woher kommen Sie?</i>" },
+                    { type: "rule", title: "Aussagesatz (Statement)", content: "In a simple statement, the conjugated verb is always in position 2. The subject is usually in position 1. <br><i>Example: Ich komme aus Deutschland.</i>" },
+                    { 
+                        type: 'conjugation',
+                        title: "Verb Conjugation: Present Tense",
+                        verbs: {
+                            'sein (to be)': { ich: 'bin', du: 'bist', 'er/sie/es': 'ist', wir: 'sind', ihr: 'seid', 'sie/Sie': 'sind' },
+                            'heißen (to be called)': { ich: 'heiße', du: 'heißt', 'er/sie/es': 'heißt', wir: 'heißen', ihr: 'heißt', 'sie/Sie': 'heißen' },
+                            'wohnen (to live)': { ich: 'wohne', du: 'wohnst', 'er/sie/es': 'wohnt', wir: 'wohnen', ihr: 'wohnt', 'sie/Sie': 'wohnen' }
+                        }
+                    }
+                ],
+                exercises: [
+                    { type: 'conjugation-fill-in', question: "Wer ______ (sein) du?", verb: "sein", answer: "bist" },
+                    { type: 'conjugation-fill-in', question: "Wo ______ (wohnen) Sie?", verb: "wohnen", answer: "wohnen" },
+                    { type: "multiple-choice", question: "What is the formal way to say goodbye?", options: ["Tschüs", "Ciao", "Auf Wiedersehen", "Hallo"], answer: "Auf Wiedersehen" }
+                ]
+            },
+            kapitel2: {
+                title: "Freunde, Kollegen und ich",
+                description: "Talking about hobbies and professions, making arrangements.",
+                vocab: [ { de: "das Hobby, -s", en: "the hobby, -ies" }, { de: "kochen", en: "to cook" }, { de: "lesen", en: "to read" }, { de: "reisen", en: "to travel" }, { de: "der Beruf, -e", en: "the profession, -s" }, { de: "der Arzt, ¨-e", en: "the doctor (m.)" }, { de: "die Lehrerin, -nen", en: "the teacher (f.)" }, { de: "der Wochentag, -e", en: "the day of the week" }, { de: "arbeiten", en: "to work" }, { de: "Freunde treffen", en: "to meet friends" } ],
+                grammar: [
+                    { type: "rule", title: "Ja/Nein-Frage (Yes/No Question)", content: "For a yes/no question, the conjugated verb moves to position 1. <br><i>Example: Kommst du aus Berlin? - Ja. / Nein.</i>" },
+                    { type: "rule", title: "Bestimmter Artikel (Definite Article)", content: "Every noun has a gender, indicated by its article. Masculine: <strong>der</strong>, Neuter: <strong>das</strong>, Feminine: <strong>die</strong>. The plural article is always <strong>die</strong>. You must memorize the noun with its article.<br><i>Examples: der Stift, das Buch, die Tasche, die Bücher.</i>" },
+                    { 
+                        type: 'conjugation',
+                        title: "Irregular Verbs (Vowel Change)",
+                        verbs: {
+                            'lesen (to read)': { ich: 'lese', du: 'liest', 'er/sie/es': 'liest', wir: 'lesen', ihr: 'lest', 'sie/Sie': 'lesen' },
+                            'sprechen (to speak)': { ich: 'spreche', du: 'sprichst', 'er/sie/es': 'spricht', wir: 'sprechen', ihr: 'sprecht', 'sie/Sie': 'sprechen' },
+                            'haben (to have)': { ich: 'habe', du: 'hast', 'er/sie/es': 'hat', wir: 'haben', ihr: 'habt', 'sie/Sie': 'haben' }
+                        }
+                    }
+                ],
+                exercises: [
+                    { type: "multiple-choice", question: "Which article is correct: ___ Buch?", options: ["der", "das", "die"], answer: "das" },
+                    { type: 'conjugation-fill-in', question: "Du ______ (sprechen) sehr gut Deutsch.", verb: "sprechen", answer: "sprichst" },
+                    { type: 'conjugation-fill-in', question: "Er ______ (haben) am Freitag frei.", verb: "haben", answer: "hat" }
+                ]
+            },
+            kapitel3: {
+                title: "In Hamburg",
+                description: "Naming places, asking for directions, means of transport.",
+                vocab: [ { de: "der Bahnhof, ¨-e", en: "train station" }, { de: "die Kirche, -n", en: "church" }, { de: "das Rathaus, ¨-er", en: "city hall" }, { de: "die U-Bahn, -en", en: "subway" }, { de: "der Bus, -se", en: "the bus, -es" }, { de: "das Fahrrad, ¨-er", en: "the bicycle, -s" }, { de: "links / rechts", en: "left / right" }, { de: "geradeaus", en: "straight ahead" }, { de: "Entschuldigung", en: "Excuse me" } ],
+                grammar: [
+                    { type: "rule", title: "Indefinite & Negative Articles", content: "Use <strong>ein/eine</strong> for non-specific things ('a/an'). Masculine: <strong>ein</strong>, Neuter: <strong>ein</strong>, Feminine: <strong>eine</strong>.<br>Use <strong>kein/keine</strong> to negate a noun ('not a/an' or 'no'). Masculine: <strong>kein</strong>, Neuter: <strong>kein</strong>, Feminine: <strong>keine</strong>.<br><i>Example: Das ist ein Bus. Nein, das ist kein Bus, das ist eine U-Bahn.</i>" },
+                    { type: "rule", title: "Imperativ mit Sie (Formal Command)", content: "To give a polite command or instruction. The verb is in position 1, followed by 'Sie'.<br><i>Example: Gehen Sie rechts! (Go right!)</i>" }
+                ],
+                exercises: [
+                    { type: "fill-in-the-blank", question: "Ergänze den richtigen Artikel: Ist das ____ Kirche?", options: ["ein", "eine", "einen"], answer: "eine" },
+                     { type: "multiple-choice", question: "How do you say 'Go straight ahead' as a formal command?", options: ["Gehst du geradeaus!", "Fahren Sie geradeaus!", "Geradeaus gehen!"], answer: "Fahren Sie geradeaus!" },
+                     { type: "multiple-choice", question: "This is not a bus. → Das ist _____ Bus.", options: ["ein", "kein", "keine"], answer: "kein" }
+                ]
+            },
+             kapitel4: {
+                title: "Guten Appetit!",
+                description: "Talking about food and drink, shopping, preferences.",
+                vocab: [ { de: "der Apfel, ¨-", en: "apple" }, { de: "das Brot, -e", en: "bread" }, { de: "der Käse, -", en: "cheese" }, { de: "die Wurst, ¨-e", en: "sausage" }, { de: "das Gemüse", en: "vegetables" }, { de: "das Wasser", en: "water" }, { de: "lecker", en: "delicious" }, { de: "einkaufen", en: "to go shopping" } ],
+                grammar: [
+                    { type: "rule", title: "The Accusative Case", content: "The direct object in a sentence is in the accusative case. Only the masculine articles change: <strong>der → den</strong>, <strong>ein → einen</strong>, <strong>kein → keinen</strong>. Feminine and neuter articles remain the same.<br><i>Example: Ich kaufe <strong>den</strong> Apfel. Ich esse <strong>einen</strong> Salat.</i>" },
+                    { 
+                        type: 'conjugation',
+                        title: "Verbs: mögen vs. möchten",
+                        verbs: {
+                            'mögen (to like)': { ich: 'mag', du: 'magst', 'er/sie/es': 'mag', wir: 'mögen', ihr: 'mögt', 'sie/Sie': 'mögen' },
+                            'möchten (would like)': { ich: 'möchte', du: 'möchtest', 'er/sie/es': 'möchte', wir: 'möchten', ihr: 'möchtet', 'sie/Sie': 'möchten' },
+                            'essen (to eat)': { ich: 'esse', du: 'isst', 'er/sie/es': 'isst', wir: 'essen', ihr: 'esst', 'sie/Sie': 'essen' }
+                        }
+                    }
+                ],
+                exercises: [
+                    { type: 'conjugation-fill-in', question: "Ich ______ (mögen) Schokolade.", verb: "mögen", answer: "mag" },
+                    { type: "fill-in-the-blank", question: "Ergänze den Artikel im Akkusativ: Sie kauft ______ Tisch (der).", options: ["ein", "eine", "einen"], answer: "einen" },
+                    { type: 'conjugation-fill-in', question: "Was ______ (essen) du gern?", verb: "essen", answer: "isst" }
+                ]
+            },
+            kapitel5: {
+                title: "Alltag und Familie",
+                description: "Time, daily routines, family, and appointments.",
+                vocab: [ { de: "die Uhrzeit, -en", en: "time" }, { de: "der Alltag", en: "daily routine" }, { de: "der Termin, -e", en: "appointment" }, { de: "die Familie, -n", en: "family" }, { de: "der Vater, ¨-", en: "father" }, { de: "die Mutter, ¨-", en: "mother" }, { de: "der Sohn, ¨-e", en: "son" }, { de: "die Tochter, ¨-", en: "daughter" }, { de: "der Bruder, ¨-", en: "brother" }, { de: "die Schwester, -n", en: "sister" }, { de: "aufstehen", en: "to get up" }, { de: "frühstücken", en: "to have breakfast" }, { de: "arbeiten", en: "to work" }, { de: "anrufen", en: "to call (phone)" }, { de: "pünktlich", en: "punctual, on time" }, { de: "die Verspätung", en: "delay, lateness" }, { de: "einen Termin vereinbaren", en: "to make an appointment" } ],
+                grammar: [
+                    { type: "rule", title: "Telling Time", content: "<strong>Official time (24-hour clock):</strong> Used in formal contexts. State the hour, then 'Uhr', then the minutes. <i>Example: 14:45 → vierzehn Uhr fünfundvierzig</i>.<br><strong>Unofficial time (12-hour clock):</strong> Used in conversation. Uses phrases like 'Viertel nach' (quarter past), 'halb' (half to), 'Viertel vor' (quarter to). <i>Example: 14:45 → Viertel vor drei</i>." },
+                    { type: "rule", title: "Time Prepositions", content: "<strong>am</strong> + day of the week/time of day (am Montag, am Abend).<br><strong>um</strong> + specific time (um 8 Uhr).<br><strong>von ... bis ...</strong> + time frame (von 9 bis 17 Uhr)." },
+                    { 
+                        type: 'conjugation',
+                        title: "Possessive Articles (Nominative & Accusative)",
+                        verbs: {
+                            'mein (my)': { 'Nom. (m/n/f/pl)': 'mein/mein/meine/meine', 'Acc. (m/n/f/pl)': 'meinen/mein/meine/meine' },
+                            'dein (your, inf.)': { 'Nom. (m/n/f/pl)': 'dein/dein/deine/deine', 'Acc. (m/n/f/pl)': 'deinen/dein/deine/deine' },
+                            'sein (his/its)': { 'Nom. (m/n/f/pl)': 'sein/sein/seine/seine', 'Acc. (m/n/f/pl)': 'seinen/sein/seine/seine' },
+                            'ihr (her/their)': { 'Nom. (m/n/f/pl)': 'ihr/ihr/ihre/ihre', 'Acc. (m/n/f/pl)': 'ihren/ihr/ihre/ihre' },
+                            'unser (our)': { 'Nom. (m/n/f/pl)': 'unser/unser/unsere/unsere', 'Acc. (m/n/f/pl)': 'unseren/unser/unsere/unsere' },
+                            'euer (your, pl.)': { 'Nom. (m/n/f/pl)': 'euer/euer/eure/eure', 'Acc. (m/n/f/pl)': 'euren/euer/eure/eure' }
+                        }
+                    },
+                    { type: "rule", title: "Sentence Structure with Modal Verbs", content: "Modal verbs take position 2 in a sentence. The second verb (the main action) goes to the end of the sentence in its infinitive form. This is called a 'Satzklammer' or sentence bracket.<br><i>Example: Ich <strong>muss</strong> heute <strong>arbeiten</strong>.</i>" },
+                    { 
+                        type: 'conjugation',
+                        title: "Modal & Irregular Verbs",
+                        verbs: {
+                            'müssen (must/have to)': { ich: 'muss', du: 'musst', 'er/sie/es': 'muss', wir: 'müssen', ihr: 'müsst', 'sie/Sie': 'müssen' },
+                            'können (can/be able)': { ich: 'kann', du: 'kannst', 'er/sie/es': 'kann', wir: 'können', ihr: 'könnt', 'sie/Sie': 'können' },
+                            'wollen (to want to)': { ich: 'will', du: 'willst', 'er/sie/es': 'will', wir: 'wollen', ihr: 'wollt', 'sie/Sie': 'wollen' },
+                            'treffen (to meet)': { ich: 'treffe', du: 'triffst', 'er/sie/es': 'trifft', wir: 'treffen', ihr: 'trefft', 'sie/Sie': 'treffen' }
+                        }
+                    }
+                ],
+                exercises: [
+                    { type: 'conjugation-fill-in', question: "Du ______ (können) gut schwimmen.", verb: "können", answer: "kannst" },
+                    { type: "multiple-choice", question: "Which sentence is correct?", options: ["Ich will ins Kino gehen.", "Ich will gehe ins Kino.", "Ich gehen will ins Kino."], answer: "Ich will ins Kino gehen." },
+                    { type: "multiple-choice", question: "He sees his father. → Er sieht ______ Vater.", options: ["sein", "seine", "seinen"], answer: "seinen" },
+                    { type: "multiple-choice", question: "I work from 9 to 5. → Ich arbeite ___ 9 ___ 5 Uhr.", options: ["am... bis...", "von... bis...", "um... am..."], answer: "von... bis..." },
+                    { type: 'conjugation-fill-in', question: "Wann ______ (treffen) du deine Freunde?", verb: "treffen", answer: "triffst" }
+                ]
+            },
+            kapitel6: {
+                title: "Zeit mit Freunden",
+                description: "Free time, birthdays, invitations, and ordering at a restaurant.",
+                vocab: [ { de: "die Freizeit", en: "free time" }, { de: "der Geburtstag, -e", en: "birthday" }, { de: "die Einladung, -en", en: "invitation" }, { de: "feiern", en: "to celebrate" }, { de: "anrufen", en: "to call (phone)" }, { de: "einkaufen", en: "to shop" }, { de: "mitbringen", en: "to bring with" }, { de: "abholen", en: "to pick up" }, { de: "einladen", en: "to invite" }, { de: "bestellen", en: "to order" }, { de: "bezahlen", en: "to pay" }, { de: "das Geschenk, -e", en: "the gift, -s" }, { de: "die Speisekarte", en: "the menu" }, { de: "der Kellner", en: "the waiter" }, { de: "das Trinkgeld", en: "the tip" }, { de: "Zusammen oder getrennt?", en: "Together or separate?" } ],
+                grammar: [
+                    { type: "rule", title: "Ordinal Numbers & Dates", content: "To state a date, use 'am' + the ordinal number + '-ten'. <i>Example: am ers<strong>ten</strong> Mai, am drit<strong>ten</strong> Juni.</i> For numbers 20 and up, add '-sten'. <i>Example: am zwanzig<strong>sten</strong> Juli.</i><br>Irregular: am <strong>ersten</strong> (1st), am <strong>dritten</strong> (3rd), am <strong>siebten</strong> (7th)." },
+                    { type: "rule", title: "Trennbare Verben (Separable Verbs)", content: "With separable verbs, the prefix goes to the end of the sentence in the present tense. <br>Common separable verbs: <strong>an</strong>rufen, <strong>ein</strong>kaufen, <strong>mit</strong>bringen, <strong>ab</strong>holen, <strong>ein</strong>laden, <strong>an</strong>fangen, <strong>auf</strong>hören.<br><i>Example: Ich <strong>rufe</strong> dich morgen <strong>an</strong>.</i><br>With a modal verb, the separable verb stays together at the end. <i>Example: Ich will dich morgen <strong>anrufen</strong>.</i>" },
+                    { type: "rule", title: "Preposition 'für' + Accusative", content: "The preposition 'für' (for) is always followed by the accusative case. <br><i>Example: Das Geschenk ist für <strong>dich</strong>. Ich kaufe Blumen für <strong>meine</strong> Mutter.</i>" },
+                    { 
+                        type: 'conjugation',
+                        title: "Personal Pronouns (Accusative)",
+                        verbs: {
+                            'Direct Object': { 'ich': 'mich', 'du': 'dich', 'er': 'ihn', 'sie': 'sie', 'es': 'es', 'wir': 'uns', 'ihr': 'euch', 'sie/Sie': 'sie/Sie' }
+                        }
+                    },
+                    {
+                        type: 'conjugation',
+                        title: 'Irregular Verb',
+                        verbs: {
+                           'nehmen (to take)': { ich: 'nehme', du: 'nimmst', 'er/sie/es': 'nimmt', wir: 'nehmen', ihr: 'nehmt', 'sie/Sie': 'nehmen' }
+                        }
+                    }
+                ],
+                exercises: [
+                    { type: "multiple-choice", question: "Which sentence with a separable verb is correct?", options: ["Er kauft im Supermarkt ein.", "Er einkauft im Supermarkt.", "Er kauft ein im Supermarkt."], answer: "Er kauft im Supermarkt ein." },
+                    { type: "multiple-choice", question: "The present is for him. → Das Geschenk ist für ____.", options: ["er", "ihn", "ihm"], answer: "ihn" },
+                    { type: 'conjugation-fill-in', question: "Was ______ (nehmen) Sie?", verb: "nehmen", answer: "nehmen" },
+                    { type: "multiple-choice", question: "My birthday is on the third of March. → Mein Geburtstag ist __ _______ März.", options: ["am drei", "am dritten", "am dreisten"], answer: "am dritten" },
+                     { type: "multiple-choice", question: "Can you pick me up? → Kannst du ____ abholen?", options: ["ich", "mich", "mir"], answer: "mich" }
+                ]
+            },
+            irregularVerbs: {
+                type: 'special',
+                title: "Irregular Verbs List",
+                description: "A summary of important irregular verbs from A1.1 with vowel changes in the present tense.",
+                verbs: [
+                    { infinitive: 'essen', ich: 'esse', du: 'isst', er_sie_es: 'isst', wir: 'essen', ihr: 'esst', sie_Sie: 'essen', meaning: 'to eat' },
+                    { infinitive: 'fahren', ich: 'fahre', du: 'fährst', er_sie_es: 'fährt', wir: 'fahren', ihr: 'fahrt', sie_Sie: 'fahren', meaning: 'to drive, go' },
+                    { infinitive: 'geben', ich: 'gebe', du: 'gibst', er_sie_es: 'gibt', wir: 'geben', ihr: 'gebt', sie_Sie: 'geben', meaning: 'to give' },
+                    { infinitive: 'helfen', ich: 'helfe', du: 'hilfst', er_sie_es: 'hilft', wir: 'helfen', ihr: 'helft', sie_Sie: 'helfen', meaning: 'to help' },
+                    { infinitive: 'lesen', ich: 'lese', du: 'liest', er_sie_es: 'liest', wir: 'lesen', ihr: 'lest', sie_Sie: 'lesen', meaning: 'to read' },
+                    { infinitive: 'nehmen', ich: 'nehme', du: 'nimmst', er_sie_es: 'nimmt', wir: 'nehmen', ihr: 'nehmt', sie_Sie: 'nehmen', meaning: 'to take' },
+                    { infinitive: 'schlafen', ich: 'schlafe', du: 'schläfst', er_sie_es: 'schläft', wir: 'schlafen', ihr: 'schlaft', sie_Sie: 'schlafen', meaning: 'to sleep' },
+                    { infinitive: 'sehen', ich: 'sehe', du: 'siehst', er_sie_es: 'sieht', wir: 'sehen', ihr: 'seht', sie_Sie: 'sehen', meaning: 'to see' },
+                    { infinitive: 'sprechen', ich: 'spreche', du: 'sprichst', er_sie_es: 'spricht', wir: 'sprechen', ihr: 'sprecht', sie_Sie: 'sprechen', meaning: 'to speak' },
+                    { infinitive: 'treffen', ich: 'treffe', du: 'triffst', er_sie_es: 'trifft', wir: 'treffen', ihr: 'trefft', sie_Sie: 'treffen', meaning: 'to meet' },
+                ]
+            }
+        };
+
+        const chapterNav = document.getElementById('chapter-nav');
+        const contentArea = document.getElementById('content-area');
+
+        // Function to create and display content for a chapter or special section
+        function displayContent(key) {
+            contentArea.innerHTML = '';
+            
+            document.querySelectorAll('.chapter-nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-chapter="${key}"]`).classList.add('active');
+
+            const content = studyData[key];
+            if (!content) return;
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'space-y-8';
+            
+            // Header
+            const header = document.createElement('div');
+            header.className = 'bg-white p-6 rounded-lg shadow-md';
+            header.innerHTML = `<h2 class="text-3xl font-bold">${content.title}</h2><p class="text-gray-600 mt-2">${content.description}</p>`;
+            contentWrapper.appendChild(header);
+
+            // Handle special page type for irregular verbs
+            if (content.type === 'special') {
+                const verbSection = document.createElement('div');
+                verbSection.className = 'bg-white p-6 rounded-lg shadow-md overflow-x-auto';
+                
+                let tableHTML = `<table class="w-full verb-table"><thead><tr><th>Infinitive</th><th>ich</th><th>du</th><th>er/sie/es</th><th>wir</th><th>ihr</th><th>sie/Sie</th><th>Meaning</th></tr></thead><tbody>`;
+                content.verbs.forEach(verb => {
+                    tableHTML += `<tr><td>${verb.infinitive}</td><td>${verb.ich}</td><td>${verb.du}</td><td>${verb.er_sie_es}</td><td>${verb.wir}</td><td>${verb.ihr}</td><td>${verb.sie_Sie}</td><td>${verb.meaning}</td></tr>`;
+                });
+                tableHTML += `</tbody></table>`;
+                verbSection.innerHTML = tableHTML;
+                contentWrapper.appendChild(verbSection);
+            } else {
+                 // Vocab Section
+                if (content.vocab && content.vocab.length > 0) {
+                    const vocabSection = document.createElement('div');
+                    vocabSection.className = 'bg-white p-6 rounded-lg shadow-md';
+                    vocabSection.innerHTML = `<h3 class="text-2xl font-semibold mb-4 text-indigo-600">Vocabulary</h3>`;
+                    const vocabGrid = document.createElement('div');
+                    vocabGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+                    content.vocab.forEach(word => {
+                        const cardContainer = document.createElement('div');
+                        cardContainer.className = 'flashcard-container h-24';
+                        const card = document.createElement('div');
+                        card.className = 'flashcard';
+                        card.innerHTML = `<div class="flashcard-face flashcard-front text-lg font-semibold">${word.de}</div><div class="flashcard-face flashcard-back text-lg">${word.en}</div>`;
+                        card.addEventListener('click', () => card.classList.toggle('is-flipped'));
+                        cardContainer.appendChild(card);
+                        vocabGrid.appendChild(cardContainer);
+                    });
+                    vocabSection.appendChild(vocabGrid);
+                    contentWrapper.appendChild(vocabSection);
+                }
+
+                // Grammar Section
+                if (content.grammar && content.grammar.length > 0) {
+                    const grammarSection = document.createElement('div');
+                    grammarSection.className = 'bg-white p-6 rounded-lg shadow-md';
+                    grammarSection.innerHTML = `<h3 class="text-2xl font-semibold mb-4 text-indigo-600">Grammar Notes</h3>`;
+                    const grammarList = document.createElement('div');
+                    grammarList.className = 'space-y-6';
+
+                    content.grammar.forEach(item => {
+                        if (item.type === 'rule') {
+                            const listItem = document.createElement('div');
+                            listItem.className = 'p-4 bg-gray-50 rounded-md';
+                            listItem.innerHTML = `<h4 class="font-semibold text-lg">${item.title}</h4><p class="mt-1 text-gray-700">${item.content}</p>`;
+                            grammarList.appendChild(listItem);
+                        } else if (item.type === 'conjugation') {
+                             const conjContainer = document.createElement('div');
+                             conjContainer.className = 'p-4 bg-gray-50 rounded-md';
+                             conjContainer.innerHTML = `<h4 class="font-semibold text-lg mb-3">${item.title}</h4>`;
+                             const conjGrid = document.createElement('div');
+                             conjGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4';
+
+                             Object.keys(item.verbs).forEach(verbName => {
+                                 const tableContainer = document.createElement('div');
+                                 let tableHTML = `<h5 class="font-medium mb-2">${verbName}</h5><table class="w-full text-sm text-left">`;
+                                 const verbData = item.verbs[verbName];
+                                 Object.keys(verbData).forEach(pronoun => {
+                                     tableHTML += `<tr><td class="py-1 pr-2 text-gray-500">${pronoun}</td><td class="py-1 font-mono">${verbData[pronoun]}</td></tr>`;
+                                 });
+                                 tableHTML += `</table>`;
+                                 tableContainer.innerHTML = tableHTML;
+                                 conjGrid.appendChild(tableContainer);
+                             });
+                             conjContainer.appendChild(conjGrid);
+                             grammarList.appendChild(conjContainer);
+                        }
+                    });
+                    grammarSection.appendChild(grammarList);
+                    contentWrapper.appendChild(grammarSection);
+                }
+                
+                // Exercises Section
+                if (content.exercises && content.exercises.length > 0) {
+                    const exerciseSection = document.createElement('div');
+                    exerciseSection.className = 'bg-white p-6 rounded-lg shadow-md';
+                    exerciseSection.innerHTML = `<h3 class="text-2xl font-semibold mb-4 text-indigo-600">Exercises</h3>`;
+                    const exerciseList = document.createElement('div');
+                    exerciseList.className = 'space-y-6';
+
+                    content.exercises.forEach((ex, index) => {
+                        const exerciseItem = document.createElement('div');
+                        exerciseItem.className = 'p-4 border border-gray-200 rounded-lg';
+                        const questionId = `${key}-ex-${index}`;
+                        exerciseItem.id = questionId;
+                        
+                        const feedback = document.createElement('p');
+                        feedback.className = 'mt-2 text-sm font-medium';
+
+                        if(ex.type === 'multiple-choice' || ex.type === 'fill-in-the-blank') {
+                            exerciseItem.innerHTML = `<p class="font-medium mb-3">${index + 1}. ${ex.question}</p>`;
+                            const optionsContainer = document.createElement('div');
+                            optionsContainer.className = 'space-y-2';
+                            ex.options.forEach(option => {
+                                const optionButton = document.createElement('button');
+                                optionButton.textContent = option;
+                                optionButton.className = 'block w-full text-left p-3 rounded-md bg-gray-100 quiz-option transition-colors';
+                                optionButton.addEventListener('click', () => {
+                                    document.querySelectorAll(`#${questionId} button`).forEach(btn => {
+                                        btn.classList.remove('bg-red-200', 'bg-green-200');
+                                        btn.disabled = true;
+                                    });
+                                    if (option.toLowerCase() === ex.answer.toLowerCase()) {
+                                        optionButton.classList.add('bg-green-200');
+                                        feedback.textContent = 'Richtig! (Correct!)';
+                                        feedback.className = 'mt-2 text-sm font-medium text-green-600';
+                                    } else {
+                                        optionButton.classList.add('bg-red-200');
+                                        feedback.textContent = `Falsch. Richtige Antwort: "${ex.answer}". (Incorrect. Correct answer: "${ex.answer}".)`;
+                                        feedback.className = 'mt-2 text-sm font-medium text-red-600';
+                                    }
+                                });
+                                optionsContainer.appendChild(optionButton);
+                            });
+                            exerciseItem.appendChild(optionsContainer);
+                        } else if (ex.type === 'conjugation-fill-in') {
+                             const questionText = ex.question.replace('______', `<input type="text" class="conjugation-input" id="input-${questionId}" placeholder="${ex.verb}">`);
+                             exerciseItem.innerHTML = `<div class="flex items-center flex-wrap">${index + 1}. ${questionText}</div>`;
+                             const checkButton = document.createElement('button');
+                             checkButton.textContent = 'Check';
+                             checkButton.className = 'ml-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700';
+                             checkButton.addEventListener('click', () => {
+                                 const userInput = document.getElementById(`input-${questionId}`);
+                                 if(userInput.value.trim().toLowerCase() === ex.answer.toLowerCase()) {
+                                     userInput.classList.remove('border-red-500');
+                                     userInput.classList.add('border-green-500', 'border-2');
+                                     feedback.textContent = 'Richtig! (Correct!)';
+                                     feedback.className = 'mt-2 text-sm font-medium text-green-600';
+                                 } else {
+                                     userInput.classList.remove('border-green-500');
+                                     userInput.classList.add('border-red-500', 'border-2');
+                                     feedback.textContent = `Falsch. Richtige Antwort: "${ex.answer}". (Incorrect. Correct answer: "${ex.answer}".)`;
+                                     feedback.className = 'mt-2 text-sm font-medium text-red-600';
+                                 }
+                                 checkButton.disabled = true;
+                                 userInput.disabled = true;
+                             });
+                             exerciseItem.querySelector('div').appendChild(checkButton);
+                        }
+                        
+                        exerciseItem.appendChild(feedback);
+                        exerciseList.appendChild(exerciseItem);
+                    });
+
+                    exerciseSection.appendChild(exerciseList);
+                    contentWrapper.appendChild(exerciseSection);
+                }
+            }
+            contentArea.appendChild(contentWrapper);
+        }
+
+        // Initialize the page
+        function init() {
+            // Populate navigation for chapters
+            for (let i = 1; i <= 6; i++) {
+                const key = `kapitel${i}`;
+                const chapter = studyData[key];
+                if (chapter) {
+                    const navLink = document.createElement('a');
+                    navLink.href = '#';
+                    navLink.textContent = `Ch. ${i}: ${chapter.title}`;
+                    navLink.className = 'chapter-nav-item block px-4 py-2 rounded-md hover:bg-indigo-100 transition-colors';
+                    navLink.dataset.chapter = key;
+                    navLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        displayContent(key);
+                        window.scrollTo(0, 0);
+                    });
+                    const navItem = document.createElement('li');
+                    navItem.appendChild(navLink);
+                    chapterNav.appendChild(navItem);
+                }
+            }
+            
+            // Add separator
+            const separator = document.createElement('hr');
+            separator.className = 'my-2';
+            chapterNav.appendChild(separator);
+
+            // Add special sections to navigation
+             const irregularVerbsKey = 'irregularVerbs';
+             const irregularVerbsData = studyData[irregularVerbsKey];
+             const irregularVerbsLink = document.createElement('a');
+             irregularVerbsLink.href = '#';
+             irregularVerbsLink.textContent = irregularVerbsData.title;
+             irregularVerbsLink.className = 'chapter-nav-item block px-4 py-2 rounded-md hover:bg-indigo-100 transition-colors';
+             irregularVerbsLink.dataset.chapter = irregularVerbsKey;
+             irregularVerbsLink.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 displayContent(irregularVerbsKey);
+                 window.scrollTo(0, 0);
+             });
+             const irregularVerbsNavItem = document.createElement('li');
+             irregularVerbsNavItem.appendChild(irregularVerbsLink);
+             chapterNav.appendChild(irregularVerbsNavItem);
+
+
+            // Display the first chapter by default
+            if (Object.keys(studyData).length > 0) {
+                displayContent('kapitel1');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
